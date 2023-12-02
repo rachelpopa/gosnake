@@ -74,14 +74,13 @@ func move(state GameState) BattlesnakeMoveResponse {
 	// Prevent from moving out of bounds
 	if myHead.X == 10 {
 		isMoveSafe["right"] = false
-	}
-	if myHead.Y == 10 {
-		isMoveSafe["up"] = false
-	}
-	if myHead.X == 0 {
+	} else if myHead.X == 0 {
 		isMoveSafe["left"] = false
 	}
-	if myHead.Y == 0 {
+
+	if myHead.Y == 10 {
+		isMoveSafe["up"] = false
+	} else if myHead.Y == 0 {
 		isMoveSafe["down"] = false
 	}
 
@@ -90,14 +89,11 @@ func move(state GameState) BattlesnakeMoveResponse {
 	for i := 0; i < len(mybody); i++ {
 		if (mybody[i].X == myHead.X+1) && (mybody[i].Y == myHead.Y) {
 			isMoveSafe["right"] = false
-		}
-		if (mybody[i].X == myHead.X) && (mybody[i].Y == myHead.Y+1) {
+		} else if (mybody[i].X == myHead.X) && (mybody[i].Y == myHead.Y+1) {
 			isMoveSafe["up"] = false
-		}
-		if (mybody[i].X == myHead.X-1) && (mybody[i].Y == myHead.Y) {
+		} else if (mybody[i].X == myHead.X-1) && (mybody[i].Y == myHead.Y) {
 			isMoveSafe["left"] = false
-		}
-		if (mybody[i].X == myHead.X) && (mybody[i].Y == myHead.Y-1) {
+		} else if (mybody[i].X == myHead.X) && (mybody[i].Y == myHead.Y-1) {
 			isMoveSafe["down"] = false
 		}
 	}
