@@ -14,7 +14,7 @@ package main
 
 import (
 	"log"
-	"math/rand"
+	"slices"
 )
 
 // info is called when you create your Battlesnake on play.battlesnake.com
@@ -40,6 +40,54 @@ func start(state GameState) {
 // end is called when your Battlesnake finishes a game
 func end(state GameState) {
 	log.Printf("GAME OVER\n\n")
+}
+
+func isGoodCoord(c Coord, badCoords []Coord) bool {
+
+	if c.X > 10 || c.X < 0 || c.Y > 10 || c.Y < 0 {
+		return false
+	}
+
+	for i := 0; i < len(badCoords); i++ {
+		if c == badCoords[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func getArea(prevPoint Coord, nextPoint Coord, badCoords []Coord, searched []Coord) int {
+
+	if slices.Contains(searched, nextPoint) {
+		println("Got here A")
+		return 0
+	}
+
+	rightMove := Coord{nextPoint.X + 1, nextPoint.Y}
+	leftMove := Coord{nextPoint.X - 1, nextPoint.Y}
+	upMove := Coord{nextPoint.X, nextPoint.Y + 1}
+	downMove := Coord{nextPoint.X, nextPoint.Y - 1}
+
+	if (prevPoint != rightMove) && isGoodCoord(rightMove, badCoords) {
+
+		println(rightMove.X)
+		println(rightMove.Y)
+		println("Got here C")
+		return 1 + getArea(nextPoint, rightMove, badCoords, append(searched, nextPoint))
+	} else if (prevPoint != downMove) && isGoodCoord(downMove, badCoords) {
+
+		println("Got here D")
+		return 1 + getArea(nextPoint, downMove, badCoords, append(searched, nextPoint))
+	} else if (prevPoint != leftMove) && isGoodCoord(leftMove, badCoords) {
+
+		println("Got here E")
+		return 1 + getArea(nextPoint, leftMove, badCoords, append(searched, nextPoint))
+	} else if (prevPoint != upMove) && isGoodCoord(upMove, badCoords) {
+		println("Got here F")
+		return 1 + getArea(nextPoint, upMove, badCoords, append(searched, nextPoint))
+	}
+	println("Got here B")
+	return 0
 }
 
 func upIsSafe(head Coord, badCoords []Coord) bool {
@@ -90,6 +138,22 @@ func leftIsSafe(head Coord, badCoords []Coord) bool {
 	return true
 }
 
+func getCoordForMove(head Coord, move string) Coord {
+	if "up" == move {
+		return Coord{head.X, head.Y + 1}
+	}
+	if "down" == move {
+		return Coord{head.X, head.Y - 1}
+	}
+	if "right" == move {
+		return Coord{head.X + 1, head.Y}
+	}
+	if "left" == move {
+		return Coord{head.X - 1, head.Y}
+	}
+	return Coord{-1, -1}
+}
+
 // move is called on every turn and returns your next move
 // Valid moves are "up", "down", "left", or "right"
 // See https://docs.battlesnake.com/api/example-move for available data
@@ -127,8 +191,22 @@ func move(state GameState) BattlesnakeMoveResponse {
 		return BattlesnakeMoveResponse{Move: "down"}
 	}
 
+	highestArea := 0
+	bestMove := ""
+
+	for i := 0; i < len(safeMoves); i++ {
+		area := getArea(myHead, getCoordForMove(myHead, safeMoves[i]), badSquares, []Coord{})
+		println(area)
+		if area > highestArea {
+			highestArea = area
+			bestMove = safeMoves[i]
+		}
+	}
+
 	// Choose a random move from the safe ones
-	nextMove := safeMoves[rand.Intn(len(safeMoves))]
+	nextMove := bestMove
+
+	// nextMove := safeMoves[rand.Intn(len(safeMoves))]
 
 	// TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
 	// food := state.Board.Food
