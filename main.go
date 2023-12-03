@@ -59,7 +59,6 @@ func isGoodCoord(c Coord, badCoords []Coord) bool {
 func getArea(prevPoint Coord, nextPoint Coord, badCoords []Coord, searched []Coord) int {
 
 	if slices.Contains(searched, nextPoint) {
-		println("Got here A")
 		return 0
 	}
 
@@ -69,24 +68,14 @@ func getArea(prevPoint Coord, nextPoint Coord, badCoords []Coord, searched []Coo
 	downMove := Coord{nextPoint.X, nextPoint.Y - 1}
 
 	if (prevPoint != rightMove) && isGoodCoord(rightMove, badCoords) {
-
-		println(rightMove.X)
-		println(rightMove.Y)
-		println("Got here C")
 		return 1 + getArea(nextPoint, rightMove, badCoords, append(searched, nextPoint))
 	} else if (prevPoint != downMove) && isGoodCoord(downMove, badCoords) {
-
-		println("Got here D")
 		return 1 + getArea(nextPoint, downMove, badCoords, append(searched, nextPoint))
 	} else if (prevPoint != leftMove) && isGoodCoord(leftMove, badCoords) {
-
-		println("Got here E")
 		return 1 + getArea(nextPoint, leftMove, badCoords, append(searched, nextPoint))
 	} else if (prevPoint != upMove) && isGoodCoord(upMove, badCoords) {
-		println("Got here F")
 		return 1 + getArea(nextPoint, upMove, badCoords, append(searched, nextPoint))
 	}
-	println("Got here B")
 	return 0
 }
 
@@ -196,7 +185,6 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	for i := 0; i < len(safeMoves); i++ {
 		area := getArea(myHead, getCoordForMove(myHead, safeMoves[i]), badSquares, []Coord{})
-		println(area)
 		if area > highestArea {
 			highestArea = area
 			bestMove = safeMoves[i]
