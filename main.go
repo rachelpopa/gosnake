@@ -14,6 +14,7 @@ package main
 
 import (
 	"log"
+	"math"
 	"slices"
 )
 
@@ -143,6 +144,31 @@ func getCoordForMove(head Coord, move string) Coord {
 	return Coord{-1, -1}
 }
 
+func powInt(x, y int) int {
+	return int(math.Pow(float64(x), float64(y)))
+}
+
+func isCloserToFruit(old Coord, new Coord, fruitLocations []Coord) bool {
+	closestDistance := 1000
+	closestCoord := old
+
+	for i := 0; i < len(fruitLocations); i++ {
+		oldDistance := powInt(old.X-fruitLocations[i].X, 2) + powInt(old.Y-fruitLocations[i].Y, 2)
+		newDistance := powInt(new.X-fruitLocations[i].X, 2) + powInt(new.Y-fruitLocations[i].Y, 2)
+
+		if oldDistance < closestDistance {
+			closestDistance = oldDistance
+			closestCoord = old
+		}
+		if newDistance < closestDistance {
+			closestDistance = newDistance
+			closestCoord = new
+		}
+	}
+
+	return closestCoord == new
+}
+
 // move is called on every turn and returns your next move
 // Valid moves are "up", "down", "left", or "right"
 // See https://docs.battlesnake.com/api/example-move for available data
@@ -187,6 +213,8 @@ func move(state GameState) BattlesnakeMoveResponse {
 		area := getArea(myHead, getCoordForMove(myHead, safeMoves[i]), badSquares, []Coord{})
 		if area > highestArea {
 			highestArea = area
+			bestMove = safeMoves[i]
+		} else if area == highestArea && isCloserToFruit(getCoordForMove(myHead, bestMove), getCoordForMove(myHead, safeMoves[i]), state.Board.Food) {
 			bestMove = safeMoves[i]
 		}
 	}
