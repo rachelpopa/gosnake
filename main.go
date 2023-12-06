@@ -15,6 +15,7 @@ package main
 import (
 	"log"
 	"math"
+	"math/rand"
 	"slices"
 )
 
@@ -66,35 +67,19 @@ func getArea(prevPoint Coord, nextPoint Coord, badCoords []Coord, searched []Coo
 	if slices.Contains(searched, nextPoint) {
 		return 0
 	}
-
 	rightMove := Coord{nextPoint.X + 1, nextPoint.Y}
 	leftMove := Coord{nextPoint.X - 1, nextPoint.Y}
 	upMove := Coord{nextPoint.X, nextPoint.Y + 1}
 	downMove := Coord{nextPoint.X, nextPoint.Y - 1}
 
 	if (prevPoint != rightMove) && isGoodCoord(rightMove, badCoords) {
-		area1 := getArea(nextPoint, rightMove, badCoords, append(searched, nextPoint))
-		if area1 != 0 {
-			return 1 + area1
-		}
-	}
-	if (prevPoint != downMove) && isGoodCoord(downMove, badCoords) {
-		area2 := getArea(nextPoint, downMove, badCoords, append(searched, nextPoint))
-		if area2 != 0 {
-			return 1 + area2
-		}
-	}
-	if (prevPoint != leftMove) && isGoodCoord(leftMove, badCoords) {
-		area3 := getArea(nextPoint, leftMove, badCoords, append(searched, nextPoint))
-		if area3 != 0 {
-			return 1 + area3
-		}
-	}
-	if (prevPoint != upMove) && isGoodCoord(upMove, badCoords) {
-		area4 := getArea(nextPoint, upMove, badCoords, append(searched, nextPoint))
-		if area4 != 0 {
-			return 1 + area4
-		}
+		return 1 + getArea(nextPoint, rightMove, badCoords, append(searched, nextPoint))
+	} else if (prevPoint != downMove) && isGoodCoord(downMove, badCoords) {
+		return 1 + getArea(nextPoint, downMove, badCoords, append(searched, nextPoint))
+	} else if (prevPoint != leftMove) && isGoodCoord(leftMove, badCoords) {
+		return 1 + getArea(nextPoint, leftMove, badCoords, append(searched, nextPoint))
+	} else if (prevPoint != upMove) && isGoodCoord(upMove, badCoords) {
+		return 1 + getArea(nextPoint, upMove, badCoords, append(searched, nextPoint))
 	}
 	return 1
 }
@@ -243,14 +228,16 @@ func move(state GameState) BattlesnakeMoveResponse {
 	}
 
 	highestArea := 0
-	bestMove := ""
+	bestMove := safeMoves[rand.Intn(len(safeMoves))]
 
 	for i := 0; i < len(safeMoves); i++ {
 		area := getArea(myHead, getCoordForMove(myHead, safeMoves[i]), badSquares, []Coord{})
 		// println("Direction: " + safeMoves[i] + " Area: " + strconv.Itoa(area))
 		if area > highestArea {
 			highestArea = area
-			bestMove = safeMoves[i]
+			if isNotNearSnakeHead(getCoordForMove(myHead, safeMoves[i]), state.Board.Snakes, state.You.ID) {
+				bestMove = safeMoves[i]
+			}
 		} else if isWithinTwo(area, highestArea) && isCloserToFruit(getCoordForMove(myHead, bestMove), getCoordForMove(myHead, safeMoves[i]), state.Board.Food) && isNotNearSnakeHead(getCoordForMove(myHead, safeMoves[i]), state.Board.Snakes, state.You.ID) {
 			// println("was within two and closer")
 			bestMove = safeMoves[i]
