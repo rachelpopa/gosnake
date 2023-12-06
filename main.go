@@ -57,6 +57,10 @@ func isGoodCoord(c Coord, badCoords []Coord) bool {
 	return true
 }
 
+func isWithinTwo(area1 int, area2 int) bool {
+	return math.Abs(float64(area1-area2)) <= 2
+}
+
 func getArea(prevPoint Coord, nextPoint Coord, badCoords []Coord, searched []Coord) int {
 
 	if slices.Contains(searched, nextPoint) {
@@ -69,15 +73,30 @@ func getArea(prevPoint Coord, nextPoint Coord, badCoords []Coord, searched []Coo
 	downMove := Coord{nextPoint.X, nextPoint.Y - 1}
 
 	if (prevPoint != rightMove) && isGoodCoord(rightMove, badCoords) {
-		return 1 + getArea(nextPoint, rightMove, badCoords, append(searched, nextPoint))
-	} else if (prevPoint != downMove) && isGoodCoord(downMove, badCoords) {
-		return 1 + getArea(nextPoint, downMove, badCoords, append(searched, nextPoint))
-	} else if (prevPoint != leftMove) && isGoodCoord(leftMove, badCoords) {
-		return 1 + getArea(nextPoint, leftMove, badCoords, append(searched, nextPoint))
-	} else if (prevPoint != upMove) && isGoodCoord(upMove, badCoords) {
-		return 1 + getArea(nextPoint, upMove, badCoords, append(searched, nextPoint))
+		area1 := getArea(nextPoint, rightMove, badCoords, append(searched, nextPoint))
+		if area1 != 0 {
+			return 1 + area1
+		}
 	}
-	return 0
+	if (prevPoint != downMove) && isGoodCoord(downMove, badCoords) {
+		area2 := getArea(nextPoint, downMove, badCoords, append(searched, nextPoint))
+		if area2 != 0 {
+			return 1 + area2
+		}
+	}
+	if (prevPoint != leftMove) && isGoodCoord(leftMove, badCoords) {
+		area3 := getArea(nextPoint, leftMove, badCoords, append(searched, nextPoint))
+		if area3 != 0 {
+			return 1 + area3
+		}
+	}
+	if (prevPoint != upMove) && isGoodCoord(upMove, badCoords) {
+		area4 := getArea(nextPoint, upMove, badCoords, append(searched, nextPoint))
+		if area4 != 0 {
+			return 1 + area4
+		}
+	}
+	return 1
 }
 
 func upIsSafe(head Coord, badCoords []Coord) bool {
@@ -169,6 +188,23 @@ func isCloserToFruit(old Coord, new Coord, fruitLocations []Coord) bool {
 	return closestCoord == new
 }
 
+func isNotNearSnakeHead(coord Coord, snakes []Battlesnake, mySnakeId string) bool {
+	for i := 0; i < len(snakes); i++ {
+		if snakes[i].ID != mySnakeId {
+			if coord.X+1 == snakes[i].Head.X && coord.Y == snakes[i].Head.Y {
+				return false
+			} else if coord.X-1 == snakes[i].Head.X && coord.Y == snakes[i].Head.Y {
+				return false
+			} else if coord.X == snakes[i].Head.X && coord.Y+1 == snakes[i].Head.Y {
+				return false
+			} else if coord.X == snakes[i].Head.X && coord.Y-1 == snakes[i].Head.Y {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 // move is called on every turn and returns your next move
 // Valid moves are "up", "down", "left", or "right"
 // See https://docs.battlesnake.com/api/example-move for available data
@@ -211,10 +247,12 @@ func move(state GameState) BattlesnakeMoveResponse {
 
 	for i := 0; i < len(safeMoves); i++ {
 		area := getArea(myHead, getCoordForMove(myHead, safeMoves[i]), badSquares, []Coord{})
+		// println("Direction: " + safeMoves[i] + " Area: " + strconv.Itoa(area))
 		if area > highestArea {
 			highestArea = area
 			bestMove = safeMoves[i]
-		} else if area == highestArea && isCloserToFruit(getCoordForMove(myHead, bestMove), getCoordForMove(myHead, safeMoves[i]), state.Board.Food) {
+		} else if isWithinTwo(area, highestArea) && isCloserToFruit(getCoordForMove(myHead, bestMove), getCoordForMove(myHead, safeMoves[i]), state.Board.Food) && isNotNearSnakeHead(getCoordForMove(myHead, safeMoves[i]), state.Board.Snakes, state.You.ID) {
+			// println("was within two and closer")
 			bestMove = safeMoves[i]
 		}
 	}
